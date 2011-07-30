@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <script type="text/javascript" 
+    src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"></script>
+  
+  <script type="text/javascript" charset="utf-8">
+    function clone(r) {
+      $(r).parent().parent().append("<div class='field'>" + $(r).parent().html() + "</div>");
+    }
+    
+    function remove(r) {
+      $(r).parent().remove();
+    }
+    
+    function send() {
+      $.ajax(
+        {
+          url: $("#url").val(),
+          username: $("#username").val(),
+          password: $("#password").val(),
+          contentType: $("#contentType").val(),
+          type: $("#reqMethod").val(),
+          dataType: "text",
+          cache: false,
+          processData: false,
+          data: $(".request .propval").val(),
+          beforeSend: function(req, settings) {
+            $(".headers .field").each(function() {
+              debugger;
+              
+              var k = $(this).find(".propname").val();
+              var k = $(this).find(".propval").val();
+              req.setRequestHeader(k, v);
+            });
+          },
+          complete: function(req, status) {
+            $("#responseStatus").val(status);
+            $("#responseText").val(req.responseText);
+          },
+          error: function(req, status, err) {
+            debugger;
+            $(".response .propval").val(req.responseText);
+          }
+        });
+    }
+    
+    function hydrate(command) {
+      for (var h in command.headers) {
+        $(".header").html("");
+        $(".header").append(
+          '<div class="field"><input class="propname" type="text" value="'+command.headers[h].name +'" /><input class="propval" type="text" value="'+command.headers[h].value +'" /><input class="minus" type="button" value="-" onclick="remove(this)" /><input class="plus" type="button" value="+" onclick="clone(this)" /></div>'
+        );
+      }
+      for (var i in command.properties) {
+        $("#"+i).val(command.properties[i]);
+      }
+      $("#requestText").val(command.request);
+    }
+    
+    $(document).ready(function() {
+      
+      hydrate({
+        headers: [
+          { name: "SOAPAction", value : ""}
+        ],
+        properties: {
+          "url": "",
+          "contentType": "text/xml; charset=utf-8",
+          "reqMethod": "POST"
+        },
+        request: '',
+        
+      });
+      
+      
+    });
+    
+    
+  </script>
+  
+  <style type="text/css" media="screen">
+    .request .propval,#responseText { height: 300px; width: 100%; }
+    
+    .header,.auth { border: 1px solid black; }
+    
+    .propname { width: 20%;  }
+    .propval { width: 80%; }
+    .header .propname, .header .propval {  width: 30% }
+
+  </style>
+</head>
+<body>
+  <form>
+    <h1>auth</h1>
+    <div class="auth">
+      <div class="field">
+        <label class="propname" for="username" >username</label>
+        <input class="propval" id="username" type="text" />
+      </div>
+      <div class="field">
+        <label class="propname" for="password">password</label>
+        <input class="propval" id="password" type="password" />
+      </div>
+    </div>
+    <h1>headers</h1>
+    <div class="header">
+      <div class="field">
+        <input class="propname" type="text" />
+        <input class="propval" type="text" />
+        <input class="minus" type="button" value="-" onclick="remove(this)" />
+        <input class="plus" type="button" value="+" onclick="clone(this)" />
+      </div>
+    </div>
+    <h1>properties</h1>
+    <div class="reqproperties">
+      <div class="field">
+        <label class="propname" for="url">url</label>
+        <input class="propval" id="url" type="text" />
+      </div>
+      <div class="field">
+        <label class="propname" for="contentType">content type</label>
+        <input class="propval" id="contentType" type="text" />
+      </div>
+      <div class="field">
+        <label class="propname" for="reqMethod">method</label>
+        <input class="propval" id="reqMethod" type="text" />
+      </div>
+    </div>
+    <h1>request</h1>
+    <div class="request">
+      <div class="field">
+        <label class="propname" for="requestText">request body</label>
+        <textarea class="propval" id="requestText"></textarea>
+      </div>
+      <input class="go" type="button" value="send request" onclick="send()" />
+    </div>
+    
+    <h1>response</h1>
+    <div class="response">
+      <div class="field">
+        <label class="propname" for="responseStatus">status</label>
+        <input class="propval" id="responseStatus" type="text">
+      </div>
+      <div class="field">
+        <label class="propname" for="responseText">response text</label>
+        <textarea class="propval" id="responseText"></textarea>
+      </div>
+    </div>
+    
+  </form>
+</body>
+</html>
